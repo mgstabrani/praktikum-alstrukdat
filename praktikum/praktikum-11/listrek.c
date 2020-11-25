@@ -1,15 +1,17 @@
 #include "listrek.h"
 #include "boolean.h"
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 address Alokasi (infotype X){
-    address P;
-    P = (address) malloc (sizeof(ElmtList));
-    if (P != Nil){
-        Info(P) = X;
-        Next(P) = Nil;
+    address result;
+    result = (address) malloc (sizeof(ElmtList));
+    if (result != Nil){
+        Info(result) = X;
+        Next(result) = Nil;
     }
+    return result;
+
 }
 
 void Dealokasi (address P){
@@ -17,11 +19,11 @@ void Dealokasi (address P){
 }
 
 int IsEmpty(List L){
-    return (L == Nil) ? 1 : 0;
+    return ((L == Nil) ? 1 : 0);
 }
 
 int IsOneElmt(List L){
-    return (L != Nil && Next(L) == Nil) ? 1 : 0;
+    return ((L != Nil && Next(L) == Nil) ? 1 : 0);
 }
 
 infotype FirstElmt (List L){
@@ -29,16 +31,19 @@ infotype FirstElmt (List L){
 }
 
 List Tail(List L){
-    if(IsEmpty(L) == 1) return Nil;
-    else return Next(L);
+    if (IsEmpty(L) == 1){
+        return Nil;
+    } else{
+        return Next(L);
+    }
 }
 
 List Konso(infotype e, List L){
-    address P = Alokasi(e);
-    if(P != Nil){
-        Next(P) = L;
-        return P;
-    } else{
+    address X = Alokasi(e);
+    if (X != Nil){
+        Next(X) = L;
+        return X;
+    } else {
         return L;
     }
 }
@@ -114,83 +119,94 @@ boolean Search (List L, infotype X){
         }
     }
 }
-
 infotype MaxList (List L){
-    infotype max = FirstElmt(L);
-    if(IsOneElmt(L)){
-        return max;
-    }
-    else{
-        if(Info(Next(L)) > max){
-            max = Info(Next(L));
-            return MaxList(Tail(L));
-        } else{
-            return MaxList(Tail(L));
-        }
+    if (IsOneElmt(L) == 1){
+        return Info(L);
+    } else {
+        return (Info(L) > MaxList(Tail(L)) ? Info(L) : MaxList(Tail(L)));
     }
 }
 
 infotype MinList (List L){
-    infotype min = FirstElmt(L);
-    if(IsOneElmt(L)){
-        return min;
-    }
-    else{
-        if(Info(Next(L)) < min){
-            min = Info(Next(L));
-            return MaxList(Tail(L));
-        } else{
-            return MaxList(Tail(L));
-        }
+    if (IsOneElmt(L) == 1){
+        return Info(L);
+    } else {
+        return (Info(L) < MinList(Tail(L)) ? Info(L) : MinList(Tail(L)));
     }
 }
 
 infotype SumList (List L){
-    if(IsOneElmt(L)){
-        return FirstElmt(L);
-    }else{
-        return FirstElmt(L) + SumList(Tail(L));
+    if (IsEmpty(L) == 1){
+        return 0;
+    } else {
+        return Info(L) + SumList(Tail(L));
     }
 }
 
 float AverageList (List L){
-    return SumList(L) / NbElmtList(L);
+    return (SumList(L)*1.0f)/(NbElmtList(L)*1.0f);
 }
 
 List InverseList (List L){
-
+    if (IsEmpty(L)) {
+        return Nil;
+    } else {
+        return KonsB(InverseList(Tail(L)), Info(L));
+    }
 }
 
 void SplitPosNeg (List L, List *L1, List *L2){
-    if(IsEmpty(L)){
-
-    }else{
-        if(Info(L) >= 0){
-            KonsB(L1,Info(L));
-        }else{
-            KonsB(L2,Info(L));
+    if (IsEmpty(L)) {
+        *L1 = Nil;
+        *L2 = Nil;
+    } else {
+        SplitPosNeg(Tail(L), L1, L2);
+        if (Info(L) < 0) {
+            *L2 = Konso(Info(L), *L2);
+        } else {
+            *L1 = Konso(Info(L), *L1);
         }
-        SplitPosNeg(Tail(L),&L1,&L2);
     }
 }
 
 void SplitOnX (List L, infotype X, List *L1, List *L2){
-    if(IsEmpty(L)){
-
-    }else{
-        if(Info(L) < X){
-            KonsB(L1,Info(L));
+    if (IsEmpty(L)){
+        *L1 = Nil;
+        *L2 = Nil;
+    } else {
+        SplitOnX(Tail(L), X, L1, L2);
+        if(Info(L) >= X){
+            *L2 = Konso(Info(L), *L2);
         }else{
-            KonsB(L2,Info(L));
+            *L1 = Konso(Info(L), *L1);
         }
-        SplitOnX(L,X,&L1,&L2);
     }
 }
 
 int ListCompare (List L1, List L2){
-
+    if (IsEmpty(L1) && IsEmpty(L2)){
+        return 0;
+    } else if (IsEmpty(L1) && (!IsEmpty(L2))){
+        return -1;
+    } else if ((!IsEmpty(L1) && IsEmpty(L2))){
+        return 1;
+    } else {
+        if (Info(L1) < Info(L2)) {
+            return -1;
+        } else if (Info(L1) > Info(L2)){
+            return 1;
+        } else {
+            return ListCompare(Tail(L1), Tail(L2));
+        }
+    }
 }
 
 boolean IsAllExist (List L1, List L2){
-
+    if (IsEmpty(L1) == 1){
+        return false;
+    } else if (IsOneElmt(L1) == 1){
+        return Search(L2, Info(L1));
+    } else {
+        return Search(L2, Info(L1)) && IsAllExist(Tail(L1), L2);
+    }
 }
